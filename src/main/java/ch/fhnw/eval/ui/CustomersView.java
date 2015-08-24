@@ -6,8 +6,7 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.spring.annotation.SpringView;
-import com.vaadin.ui.Grid;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -22,10 +21,14 @@ public class CustomersView  extends VerticalLayout implements View {
     private CustomerRepository repo;
 
     private Grid grid;
+    private TextField lastNameField;
 
     @PostConstruct
     protected void initialize() {
         setSizeFull();
+
+        HorizontalSplitPanel layout = new HorizontalSplitPanel();
+        layout.setSizeFull();
 
         grid = new Grid();
         grid.setSizeFull();
@@ -33,7 +36,27 @@ public class CustomersView  extends VerticalLayout implements View {
         grid.addColumn("lastName", String.class);
         grid.addColumn("sureName", String.class);
 
-        addComponent(grid);
+        VerticalLayout form = new VerticalLayout();
+        lastNameField = new TextField("E.g. hansi");
+
+        Button addButton = new Button("Add", event -> {
+            String lastName = lastNameField.getValue();
+            String sureName = lastName + "X";
+
+            Customer savedCustomer = repo.save(new Customer(lastName, sureName));
+            grid.getContainerDataSource().addItem(savedCustomer);
+
+            Notification.show("Created customer",
+                    Notification.Type.HUMANIZED_MESSAGE);
+        });
+
+        form.addComponent(new Label("Name"));
+        form.addComponents(lastNameField);
+        form.addComponents(addButton);
+
+        layout.addComponents(grid, form);
+
+        addComponent(layout);
     }
 
     @Override
