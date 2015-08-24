@@ -2,9 +2,12 @@ package ch.fhnw.eval.ui;
 
 import ch.fhnw.eval.business.CustomerRepository;
 import ch.fhnw.eval.entities.Customer;
+import com.vaadin.data.Validator;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.data.validator.NullValidator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +39,27 @@ public class CustomersView  extends VerticalLayout implements View {
         grid.addColumn("lastName", String.class);
         grid.addColumn("sureName", String.class);
 
-        VerticalLayout form = new VerticalLayout();
-        lastNameField = new TextField("E.g. hansi");
+        FormLayout form = new FormLayout();
+        form.setSizeUndefined();
+        form.setCaption("Creating new customer");
+
+        lastNameField = new TextField("Last name");
+        lastNameField.setIcon(FontAwesome.USER);
+        lastNameField.setImmediate(true);
+        lastNameField.setRequired(true);
+        lastNameField.setRequiredError("Is required");
+        lastNameField.addValidator(new NullValidator("Must be given", false));
 
         Button addButton = new Button("Add", event -> {
+
+            try {
+                lastNameField.validate();
+            } catch (Validator.InvalidValueException ex) {
+                lastNameField.setValidationVisible(true);
+                Notification.show("Invalid value!");
+                return;
+            }
+
             String lastName = lastNameField.getValue();
             String sureName = lastName + "X";
 
@@ -50,7 +70,6 @@ public class CustomersView  extends VerticalLayout implements View {
                     Notification.Type.HUMANIZED_MESSAGE);
         });
 
-        form.addComponent(new Label("Name"));
         form.addComponents(lastNameField);
         form.addComponents(addButton);
 
